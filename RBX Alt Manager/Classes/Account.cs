@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RBX_Alt_Manager.Classes;
 using RBX_Alt_Manager.Forms;
@@ -632,6 +632,8 @@ namespace RBX_Alt_Manager
                             Roblox.Arguments = string.Format("--app -t {0} -j \"https://assetgame.roblox.com/game/PlaceLauncher.ashx?request=RequestGame{3}&placeId={1}{2}&isPlayTogetherGame=false\"", Ticket, PlaceID, "&gameId=" + JobID, string.IsNullOrEmpty(JobID) ? "" : "Job");
 
                         Process.Start(Roblox);
+                    }
+                    catch (Exception) { }
                     });
 
                     _ = Task.Run(AdjustWindowPosition);
@@ -657,7 +659,10 @@ namespace RBX_Alt_Manager
                             else if (FollowUser)
                                 LaunchInfo.FileName = $"roblox-player:1+launchmode:play+gameinfo:{Ticket}+launchtime:{LaunchTime}+placelauncherurl:{HttpUtility.UrlEncode($"https://assetgame.roblox.com/game/PlaceLauncher.ashx?request=RequestFollowUser&userId={PlaceID}")}+browsertrackerid:{BrowserTrackerID}+robloxLocale:en_us+gameLocale:en_us+channel:+LaunchExp:InApp";
                             else
-                                LaunchInfo.FileName = $"roblox-player:1+launchmode:play+gameinfo:{Ticket}+launchtime:{LaunchTime}+placelauncherurl:{HttpUtility.UrlEncode($"https://assetgame.roblox.com/game/PlaceLauncher.ashx?request=RequestGame{(string.IsNullOrEmpty(JobID) ? "" : "Job")}&browserTrackerId={BrowserTrackerID}&placeId={PlaceID}{(string.IsNullOrEmpty(JobID) ? "" : ("&gameId=" + JobID))}&isPlayTogetherGame=false{(AccountManager.IsTeleport ? "&isTeleport=true" : "")}")}+browsertrackerid:{BrowserTrackerID}+robloxLocale:en_us+gameLocale:en_us+channel:+LaunchExp:InApp";
+                                LaunchInfo.FileName =
+                                    $"roblox-player:1+launchmode:play+gameinfo:{Ticket}+launchtime:{LaunchTime}" +
+                                    $"+placelauncherurl:{HttpUtility.UrlEncode($"https://assetgame.roblox.com/game/PlaceLauncher.ashx?request=RequestGame{(string.IsNullOrEmpty(JobID) ? "" : "Job")}&browserTrackerId={BrowserTrackerID}&placeId={PlaceID}{(string.IsNullOrEmpty(JobID) ? "" : ("&gameId=" + JobID))}&isPlayTogetherGame=false{(AccountManager.IsTeleport ? "&isTeleport=true" : "")}{launchDataParam}")}" +
+                                    $"+browsertrackerid:{BrowserTrackerID}+robloxLocale:en_us+gameLocale:en_us";
 
                             Process Launcher = Process.Start(LaunchInfo);
 
@@ -667,18 +672,6 @@ namespace RBX_Alt_Manager
 
                             _ = Task.Run(AdjustWindowPosition);
                         }
-                        else
-                        {
-                            LaunchInfo.FileName =
-                                $"roblox-player:1+launchmode:play+gameinfo:{Ticket}+launchtime:{LaunchTime}" +
-                                $"+placelauncherurl:{HttpUtility.UrlEncode($"https://assetgame.roblox.com/game/PlaceLauncher.ashx?request=RequestGame{(string.IsNullOrEmpty(JobID) ? "" : "Job")}&browserTrackerId={BrowserTrackerID}&placeId={PlaceID}{(string.IsNullOrEmpty(JobID) ? "" : ("&gameId=" + JobID))}&isPlayTogetherGame=false{(AccountManager.IsTeleport ? "&isTeleport=true" : "")}{launchDataParam}")}" +
-                                $"+browsertrackerid:{BrowserTrackerID}+robloxLocale:en_us+gameLocale:en_us";
-                        }
-
-                        Process.Start(LaunchInfo);
-                        AccountManager.Instance.NextAccount();
-                        _ = Task.Run(AdjustWindowPosition);
-                    }
                     catch (Exception x)
                     {
                         Utilities.InvokeIfRequired(AccountManager.Instance, () =>
