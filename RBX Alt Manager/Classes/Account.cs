@@ -680,7 +680,8 @@ namespace RBX_Alt_Manager
                         AccountManager.Instance.CancelLaunching();
                         AccountManager.Instance.NextAccount();
                     }
-                });
+                }
+                );
 
                 return "Success";
             }
