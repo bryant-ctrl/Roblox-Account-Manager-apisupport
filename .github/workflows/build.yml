@@ -1,0 +1,32 @@
+name: Build
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Restore NuGet packages
+        run: |
+          Invoke-WebRequest -Uri "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe" -OutFile "nuget.exe" -UseBasicParsing
+          .\nuget.exe restore "RBX Alt Manager.sln"
+
+      - name: Build solution
+        run: msbuild "RBX Alt Manager.sln" /p:Configuration=Release "/p:Platform=Any CPU" /p:RestorePackages=false
+
+      - name: Upload Release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Roblox-Account-Manager-Release
+          path: build/Release/
