@@ -612,28 +612,42 @@ namespace RBX_Alt_Manager
                     }
                 }
 
-                await Task.Run(() =>
+                if (AccountManager.UseOldJoin)
                 {
-                    try
+                    string RPath = @"C:\Program Files (x86)\Roblox\Versions\" + AccountManager.CurrentVersion;
+
+                    if (!Directory.Exists(RPath))
+                        RPath = Path.Combine(Environment.GetEnvironmentVariable("LocalAppData"), @"Roblox\Versions\" + AccountManager.CurrentVersion);
+
+                    if (!Directory.Exists(RPath))
+                        return "ERROR: Failed to find ROBLOX executable";
+
+                    RPath += @"\RobloxPlayerBeta.exe";
+
+                    AccountManager.Instance.NextAccount();
+
+                    await Task.Run(() =>
                     {
-                        ProcessStartInfo Roblox = new ProcessStartInfo(RPath);
-
-                        // Handle LaunchData for old join method
-                        if (!string.IsNullOrEmpty(LaunchData))
+                        try
                         {
-                            string encodedLaunchData = HttpUtility.UrlEncode(LaunchData);
-                            Roblox.Arguments = $"roblox://experiences/start?placeId={PlaceID}&launchData={encodedLaunchData}";
-                        }
-                        else if (JoinVIP)
-                            Roblox.Arguments = string.Format("--app -t {0} -j \"https://assetgame.roblox.com/game/PlaceLauncher.ashx?request=RequestPrivateGame&placeId={1}&accessCode={2}&linkCode={3}\"", Ticket, PlaceID, AccessCode, LinkCode);
-                        else if (FollowUser)
-                            Roblox.Arguments = string.Format("--app -t {0} -j \"https://assetgame.roblox.com/game/PlaceLauncher.ashx?request=RequestFollowUser&userId={1}\"", Ticket, PlaceID);
-                        else
-                            Roblox.Arguments = string.Format("--app -t {0} -j \"https://assetgame.roblox.com/game/PlaceLauncher.ashx?request=RequestGame{3}&placeId={1}{2}&isPlayTogetherGame=false\"", Ticket, PlaceID, "&gameId=" + JobID, string.IsNullOrEmpty(JobID) ? "" : "Job");
+                            ProcessStartInfo Roblox = new ProcessStartInfo(RPath);
 
-                        Process.Start(Roblox);
-                    }
-                    catch (Exception) { }
+                            // Handle LaunchData for old join method
+                            if (!string.IsNullOrEmpty(LaunchData))
+                            {
+                                string encodedLaunchData = HttpUtility.UrlEncode(LaunchData);
+                                Roblox.Arguments = $"roblox://experiences/start?placeId={PlaceID}&launchData={encodedLaunchData}";
+                            }
+                            else if (JoinVIP)
+                                Roblox.Arguments = string.Format("--app -t {0} -j \"https://assetgame.roblox.com/game/PlaceLauncher.ashx?request=RequestPrivateGame&placeId={1}&accessCode={2}&linkCode={3}\"", Ticket, PlaceID, AccessCode, LinkCode);
+                            else if (FollowUser)
+                                Roblox.Arguments = string.Format("--app -t {0} -j \"https://assetgame.roblox.com/game/PlaceLauncher.ashx?request=RequestFollowUser&userId={1}\"", Ticket, PlaceID);
+                            else
+                                Roblox.Arguments = string.Format("--app -t {0} -j \"https://assetgame.roblox.com/game/PlaceLauncher.ashx?request=RequestGame{3}&placeId={1}{2}&isPlayTogetherGame=false\"", Ticket, PlaceID, "&gameId=" + JobID, string.IsNullOrEmpty(JobID) ? "" : "Job");
+
+                            Process.Start(Roblox);
+                        }
+                        catch (Exception) { }
                     });
 
                     _ = Task.Run(AdjustWindowPosition);
@@ -672,18 +686,18 @@ namespace RBX_Alt_Manager
 
                             _ = Task.Run(AdjustWindowPosition);
                         }
-                    catch (Exception x)
-                    {
-                        Utilities.InvokeIfRequired(AccountManager.Instance, () =>
-                            MessageBox.Show($"ERROR: Failed to launch Roblox! Try re-installing Roblox.\n\n{x.Message}{x.StackTrace}",
-                            "Roblox Account Manager", MessageBoxButtons.OK, MessageBoxIcon.Error));
-                        AccountManager.Instance.CancelLaunching();
-                        AccountManager.Instance.NextAccount();
-                    }
-                }
-                );
+                        catch (Exception x)
+                        {
+                            Utilities.InvokeIfRequired(AccountManager.Instance, () =>
+                                MessageBox.Show($"ERROR: Failed to launch Roblox! Try re-installing Roblox.\n\n{x.Message}{x.StackTrace}",
+                                "Roblox Account Manager", MessageBoxButtons.OK, MessageBoxIcon.Error));
+                            AccountManager.Instance.CancelLaunching();
+                            AccountManager.Instance.NextAccount();
+                        }
+                    });
 
-                return "Success";
+                    return "Success";
+                }
             }
             else
             {
